@@ -148,7 +148,7 @@ class Env(object):
             node = self.lookup_name(type_name)
         except:
             # if the child doesn't be founded, it must be in this file
-            return type_name[len('.'.join(self.package)) + 1:]
+            return type_name[len('.'.join(self.package)) + 2:]
         if node.filename != self.filename:
             return (node.filename + '_pb.').upper() + node.get_local_name()
         return node.get_local_name()
@@ -316,7 +316,7 @@ def code_gen_field(index, field_desc, env):
         context('.default_value = %s\n' % default_value)
 
     if field_desc.HasField('type_name'):
-        type_name = env.get_ref_name(field_desc.type_name).upper().replace('.', '_')
+        type_name = env.get_ref_name(field_desc.type_name).upper()#.replace('.', '_')
         if field_desc.type == FDP.TYPE_MESSAGE:
             context('.message_type = %s\n' % type_name)
         else:
@@ -338,7 +338,7 @@ def code_gen_message(message_descriptor, env, containing_type = None):
     full_name = env.get_local_name()
     obj_name = full_name.upper().replace('.', '_')
     env.descriptor.append(
-        "local %s = protobuf.Descriptor();\n"% obj_name
+        "%s = protobuf.Descriptor();\n"% obj_name
     )
 
     context = Writer(obj_name)
@@ -386,6 +386,7 @@ def write_header(writer):
 """)
 
 def code_gen_file(proto_file, env, is_gen):
+
     filename = path.splitext(proto_file.name)[0]
     env.enter_file(filename, proto_file.package)
 
@@ -411,7 +412,7 @@ def code_gen_file(proto_file, env, is_gen):
         write_header(lua)
         lua('local protobuf = require "protobuf"\n')
         for i in includes:
-            lua('local %s_pb = require("%s_pb")\n' % (i, i))
+            lua('local %s_PB = require("%s_pb")\n' % (i.upper(), i))
         lua("module('%s_pb')\n" % env.filename)
 
         lua('\n\n')
@@ -447,4 +448,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
